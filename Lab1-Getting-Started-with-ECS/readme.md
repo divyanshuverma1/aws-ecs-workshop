@@ -3,39 +3,169 @@
 # Getting Started with ECS
 
 
-## 1. Setting up the VPC
-
-We will create a new VPC for our entire infrastructure. We need 2 public subnets for ECS cluster and the ALB.
-
-You can create this with the CloudFormation script using the following link.
-
-Region| Launch
-------|-----
-Asia Pacific (Singapore) | [![cfn](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-1#/stacks/new?stackName=ecsworkshopstack&templateURL=https://s3-ap-southeast-1.amazonaws.com/weitoh/containerworkshop/vpcwizard.json)
-
-
-## 2. Launching the Cluster
-
-Next, let’s launch the ECS cluster which will host our container instances. We're going to put these instances in the public subnets since they're going to be hosting public microservices.
-
-
-Navigate to the [ECS console](https://console.aws.amazon.com/ecs/) and click Create Cluster. Choose the **Networking only** cluster template. Click **Next Step**.
-
-Name the cluster **EcsLabPublicCluster**.
-
-Click Create.
-
-
-## 3. Using Cloud9 to build and push Docker Images to ECR
+## 1. Preparing CDK in Cloud9
 
 Please bring up a Cloud9 instance by going to https://ap-southeast-1.console.aws.amazon.com/cloud9/home/product. Cloud9 will provide you terminal access to run AWS CLI.
 
-First create the ECR repositories for the 2 applications.
+First create the AWS CDK Toolkit. The toolkit is a command-line utility which allows you to work with CDK apps.
 
 ```
-aws ecr create-repository --repository-name colorteller
+npm install -g aws-cdk
 
-aws ecr create-repository --repository-name colorgateway
+```
+
+In the terminal of the Cloud9, run the following command to create an empty directory.
+
+```
+mkdir ecs-workshop && cd ecs-workshop
+
+```
+
+We will use cdk init to create a new TypeScript CDK project:
+
+```
+cdk init sample-app --language typescript
+
+```
+
+Open a new terminal session (or tab). You will keep this window open in the background for the duration of the workshop.
+
+From your project directory run:
+
+```
+cd ecs-workshop
+
+```
+
+And:
+
+```
+npm run watch
+
+```
+
+This will start the TypeScript compiler (tsc) in “watch” mode, which will monitor your project directory and will automatically compile any changes to your .ts files to .js.
+
+## 2. Create the ECS cluster and VPC.
+
+Open up lib/ecs-workshop.ts. This is where the meat of our application is. The project created by cdk init sample-app includes an SQS queue, and an SNS topic. We’re not going to use them in our project, so remove them from your the CdkWorkshopStack constructor.
+
+Open lib/ecs-workshop-stack.ts and clean it up. Eventually it should look like this:
+
+```
+import cdk = require('@aws-cdk/core');
+
+export class CdkWorkshopStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    // nothing here!
+  }
+}
+```
+
+Install the EC2 construct library
+
+```
+npm install @aws-cdk/aws-ec2
+npm install @aws-cdk/aws-elasticloadbalancingv2
+npm install @aws-cdk/aws-ecs
+npm install @aws-cdk/aws-ecr
+npm install @aws-cdk/aws-iam
+npm install @aws-cdk/aws-logs
+
+```
+
+Add the import statements at the beginning of lib/ecs-workshop-stack.ts, and the code that creates the VPC and ECS cluster.
+
+```
+import cdk = require('@aws-cdk/core');
+import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
+import ec2 = require('@aws-cdk/aws-ec2');
+import ecs = require('@aws-cdk/aws-ecs');
+import ecr = require('@aws-cdk/aws-ecr');
+import iam = require('@aws-cdk/aws-iam');
+import logs = require('@aws-cdk/aws-logs');
+
+export class CdkEcsworkshopStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+	const vpc = new ec2.Vpc(this, 'VPC');
+    
+    const colortellerSecGrp = new ec2.SecurityGroup(this, "colortellerSecurityGroup", {
+      allowAllOutbound: true,
+      securityGroupName: 'colortellerSecurityGroup',
+      vpc: vpc
+    });
+    
+    colortellerSecGrp.connections.allowFromAnyIpv4(ec2.Port.tcp(8080))
+    
+    const colorgatewaySecGrp = new ec2.SecurityGroup(this, "colorgatewaySecurityGroup", {
+      allowAllOutbound: true,
+      securityGroupName: 'colorgatewaySecurityGroup',
+      vpc: vpc
+    });
+    
+    colorgatewaySecGrp.connections.allowFromAnyIpv4(ec2.Port.tcp(8080))
+    
+    const cluster = new ecs.Cluster(this, 'Cluster', {
+      vpc: vpc
+    });
+    
+    cluster.addDefaultCloudMapNamespace({name: 'ecslab'})
+
+}
+}
+
+```
+
+Let’s deploy:
+
+```
+cdk deploy
+
+```
+
+You’ll notice that cdk deploy deployed your CloudFormation stack and creates the VPC and ECS cluster.
+
+## 3. Create the IAM role
+
+Amazon ECS needs permissions so that your Fargate task can store logs in CloudWatch. This permission is covered by the task execution IAM role. Update the stack to create the IAM role.
+
+```
+ 	const taskrole = new iam.Role(this, 'ecsTaskExecutionRole', {
+      assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com')
+    });
+    
+    taskrole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'))
+
+```       
+
+
+Let’s deploy:
+
+```
+cdk deploy
+
+```
+
+
+## 4. Using Cloud9 to build and push Docker Images to ECR
+
+First add the code that creates the ECR repositories for the 2 applications.
+
+```
+	const colortellerrepo = new ecr.Repository(this, 'colorteller');
+    
+    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
+
+```
+
+Let’s deploy:
+
+```
+cdk deploy
 
 ```
 
@@ -80,155 +210,66 @@ docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:lates
 
 
 
-## 4. Create the Task Execution IAM role
-
-Amazon ECS needs permissions so that your Fargate task can store logs in CloudWatch. This permission is covered by the task execution IAM role.
-
-  
-
-Go to [IAM Console](https://console.aws.amazon.com/iam/home), click on **Role** and then **Create Role**
-
-  
-
-Choose **Elastic Container Service** and then **Elastic Container Service Task**
-
-![img6]
-
-[img6]:https://github.com/tohwsw/aws-ecs-workshop/blob/master/Lab1-Getting-Started-with-ECS/img/1-taskexecutionrole.png
-
-Next click on **Permissions** and then select **AmazonECSTaskExecutionRolePolicy**
-
-![img7]
-
-[img7]:https://github.com/tohwsw/aws-ecs-workshop/blob/master/Lab1-Getting-Started-with-ECS/img/1-taskexecutionrole2.png
-
-Name the role **ecsTaskExecutionRole**
-
 ## 5. Create the Task Definitions
 
-On your laptop, we will use the AWS CLI to create ECS task definitions.
-Copy the content below and save it as **colorgateway.json**. Make sure to change replace the account id 284245693010 with your own.
+First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications.
 
 ```
-    {
-  "executionRoleArn": "arn:aws:iam::284245693010:role/ecsTaskExecutionRole",
-  "containerDefinitions": [
-    {
-      "environment": [
-        {
-          "name": "COLOR_TELLER_ENDPOINT",
-          "value": "colorteller-service.ecslab:8080"
-        },
-        {
-          "name": "TCP_ECHO_ENDPOINT",
-          "value": "colorteller-service.ecslab:8080"
-        }
+	const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
+      logGroupName: "/ecs/colorteller",
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+    
+    const colorgatewayLogGroup = new logs.LogGroup(this, "colorgatewayLogGroup", {
+      logGroupName: "/ecs/colorgateway",
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+    
+    const colortellerLogDriver = new ecs.AwsLogDriver({
+        logGroup: colortellerLogGroup,
+        streamPrefix: "colorteller"
+      });
+      
+    const colorgatewayLogDriver = new ecs.AwsLogDriver({
+        logGroup: colorgatewayLogGroup,
+        streamPrefix: "colorgateway"
+      });
 
-      ],
-      "name": "colorgateway",
-      "image": "284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:latest",
-      "memory": 512,
-      "cpu": 256,
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/fargate",
-          "awslogs-region": "ap-southeast-1",
-          "awslogs-stream-prefix": "colorgateway"
-        }
+    const colortellerContainer = colortellerTaskDefinition.addContainer("colortellerContainer", {
+      image: ecs.ContainerImage.fromEcrRepository(colortellerrepo),
+      environment: {
+        'COLOR': 'blue'
       },
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 8080,
-          "hostPort": 8080
-        }
-      ]
-    }
-  ],
-  "family": "colorgateway_fargate_task",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": [
-    "FARGATE"
-  ],
-  "memory": "512",
-  "cpu": "256"
-}
-```
+      logging: colortellerLogDriver
+    });
     
-Next create **colorteller.json** with the below content. Notice that the environment variable "color" is "blue". Make sure to change the account id 284245693010 to your own.
-
-
-```
-{
-  "executionRoleArn": "arn:aws:iam::284245693010:role/ecsTaskExecutionRole",
-  "containerDefinitions": [
-    {
-      "environment": [
-        {
-          "name": "COLOR",
-          "value": "blue"
-        }
-      ],
-      "name": "colorteller",
-      "image": "284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller:latest",
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/fargate",
-          "awslogs-region": "ap-southeast-1",
-          "awslogs-stream-prefix": "colorteller"
-        }
+    const colorgatewayContainer = colorgatewayTaskDefinition.addContainer("colorgatewayContainer", {
+      image: ecs.ContainerImage.fromEcrRepository(colorgatewayrepo),
+      environment: {
+        'COLOR_TELLER_ENDPOINT': 'colorteller-service.ecslab:8080',
+        'TCP_ECHO_ENDPOINT': 'colorteller-service.ecslab:8080'
       },
-      "memory": 512,
-      "cpu": 256,
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 8080,
-          "hostPort": 8080
-        }
-      ]
-    }
-  ],
-  "family": "colorteller_fargate_task",
-  "memory": "512",
-  "cpu": "256",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": [
-    "FARGATE"
-  ]
-}
+      logging: colorgatewayLogDriver
+    });
+    
+    colortellerContainer.addPortMappings({
+      containerPort: 8080
+    });
+    
+    colorgatewayContainer.addPortMappings({
+      containerPort: 8080
+    });
+
 ```
 
-Next register the task definitions with ECS. You have to run the commands in the folder containing colorteller.json and colorgateway.json
+Let’s deploy:
 
-    aws ecs register-task-definition --cli-input-json file://colorgateway.json
-    
-    aws ecs register-task-definition --cli-input-json file://colorteller.json
-    
-    aws ecs list-task-definitions
+```
+cdk deploy
 
-Next, create the CloudWatch log group **/ecs/fargate**. Go to [CloudWatch Console](https://console.aws.amazon.com/cloudwatch). 
-
-![img8]
-
-[img8]:https://github.com/tohwsw/aws-ecs-workshop/blob/master/Lab1-Getting-Started-with-ECS/img/1-cloudwatch.png
-
-Give the log group name **/ecs/fargate**
-
-![img9]
-
-[img9]:https://github.com/tohwsw/aws-ecs-workshop/blob/master/Lab1-Getting-Started-with-ECS/img/1-cloudwatch2.png
+```
 
 ## 6. That's a wrap!
 
 You have now created the ECS cluster and the task definitions. You can proceed to lab 2 where the tasks will be run as ECS services.
 
->Written with [StackEdit](https://stackedit.io/).
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE4MTczNzQ2NDUsMTAwMTA3NzUzOCwtNz
-MyMTY0NzQ5LDE3OTg3MDYxODYsLTk3NjI2NDQ4Niw0MDEyNjU5
-ODEsLTE0ODMzMzg5MzksLTIwOTE2MTQ4MjJdfQ==
--->
