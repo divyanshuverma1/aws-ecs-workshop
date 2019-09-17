@@ -156,9 +156,9 @@ cdk deploy
 First add the code that creates the ECR repositories for the 2 applications.
 
 ```ts
-	 const colortellerrepo = new ecr.Repository(this, 'colorteller');
+    const colortellerrepo = new ecr.Repository(this, 'colorteller');
     
-   const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
+    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
 
 ```
 
@@ -218,7 +218,7 @@ docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:lates
 First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications.
 
 ```ts
-	const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
+    const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
       logGroupName: "/ecs/colorteller",
       removalPolicy: cdk.RemovalPolicy.DESTROY
     });
