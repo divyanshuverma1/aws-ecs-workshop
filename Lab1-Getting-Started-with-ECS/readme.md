@@ -134,7 +134,7 @@ You’ll notice that cdk deploy deployed your CloudFormation stack and creates t
 Amazon ECS needs permissions so that your Fargate task can store logs in CloudWatch. This permission is covered by the task execution IAM role. Update the stack to create the IAM role.
 
 ```ts
- 	  const taskrole = new iam.Role(this, 'ecsTaskExecutionRole', {
+    const taskrole = new iam.Role(this, 'ecsTaskExecutionRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com')
     });
     
