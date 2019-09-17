@@ -219,10 +219,6 @@ First add the code that creates the ECS Task Definitions and CloudWatch Log Grou
 
 ```ts
 
-    const colortellerrepo = new ecr.Repository(this, 'colorteller');
-    
-    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
-
     const colortellerTaskDefinition = new ecs.FargateTaskDefinition(this, 'colortellerTaskDef', {
       memoryLimitMiB: 512,
       cpu: 256,
