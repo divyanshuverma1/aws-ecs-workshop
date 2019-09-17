@@ -10,7 +10,7 @@ Please bring up a Cloud9 instance by going to https://ap-southeast-1.console.aws
 First create the AWS CDK Toolkit. The toolkit is a command-line utility which allows you to work with CDK apps.
 
 ```
-npm install -g aws-cdk
+npm install -g aws-cdk@1.7.0
 
 ```
 
@@ -67,12 +67,12 @@ export class CdkEcsworkshopStack extends cdk.Stack {
 Install the EC2 construct library
 
 ```ts
-npm install @aws-cdk/aws-ec2
-npm install @aws-cdk/aws-elasticloadbalancingv2
-npm install @aws-cdk/aws-ecs
-npm install @aws-cdk/aws-ecr
-npm install @aws-cdk/aws-iam
-npm install @aws-cdk/aws-logs
+npm install @aws-cdk/aws-ec2@1.7.0
+npm install @aws-cdk/aws-elasticloadbalancingv2@1.7.0
+npm install @aws-cdk/aws-ecs@1.7.0
+npm install @aws-cdk/aws-ecr@1.7.0
+npm install @aws-cdk/aws-iam@1.7.0
+npm install @aws-cdk/aws-logs@1.7.0
 
 ```
 
