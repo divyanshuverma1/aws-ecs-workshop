@@ -52,7 +52,7 @@ Open up lib/ecs-workshop.ts. This is where the meat of our application is. The p
 
 Open lib/ecs-workshop-stack.ts and clean it up. Eventually it should look like this:
 
-```
+```ts
 import cdk = require('@aws-cdk/core');
 
 export class CdkWorkshopStack extends cdk.Stack {
