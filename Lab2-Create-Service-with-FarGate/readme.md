@@ -6,7 +6,7 @@ Lab 2 will build on Lab 1.
 
 An ECS service helps to maintain the specified number of instances of a task definition. Add the code that creates the ECS Services.
 
-```
+```ts
     const colortellerService = new ecs.FargateService(this, 'colortellerService', { 
       cluster: cluster,
       taskDefinition: colortellerTaskDefinition,
@@ -43,7 +43,7 @@ We need an Application Load Balancer [ALB](https://aws.amazon.com/elasticloadbal
 
 Add the code that creates the ALB.
 
-```
+```ts
     const colorgatewayLB = new elbv2.ApplicationLoadBalancer(this, 'external', {
       vpc: vpc,
       internetFacing: true
@@ -80,6 +80,7 @@ We can also test from the ALB itself. To find the DNS A record for your ALB, nav
 
 ```
 {"color":"blue", "stats": {"blue":1}}
+
 ```
 
 ## That's a wrap!

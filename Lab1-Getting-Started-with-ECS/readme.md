@@ -66,7 +66,7 @@ export class CdkWorkshopStack extends cdk.Stack {
 
 Install the EC2 construct library
 
-```
+```ts
 npm install @aws-cdk/aws-ec2
 npm install @aws-cdk/aws-elasticloadbalancingv2
 npm install @aws-cdk/aws-ecs
@@ -78,7 +78,7 @@ npm install @aws-cdk/aws-logs
 
 Add the import statements at the beginning of lib/ecs-workshop-stack.ts, and the code that creates the VPC and ECS cluster.
 
-```
+```ts
 import cdk = require('@aws-cdk/core');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
 import ec2 = require('@aws-cdk/aws-ec2');
@@ -91,7 +91,7 @@ export class CdkEcsworkshopStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-	const vpc = new ec2.Vpc(this, 'VPC');
+	  const vpc = new ec2.Vpc(this, 'VPC');
     
     const colortellerSecGrp = new ec2.SecurityGroup(this, "colortellerSecurityGroup", {
       allowAllOutbound: true,
@@ -133,7 +133,7 @@ You’ll notice that cdk deploy deployed your CloudFormation stack and creates t
 
 Amazon ECS needs permissions so that your Fargate task can store logs in CloudWatch. This permission is covered by the task execution IAM role. Update the stack to create the IAM role.
 
-```
+```ts
  	const taskrole = new iam.Role(this, 'ecsTaskExecutionRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com')
     });
@@ -155,10 +155,10 @@ cdk deploy
 
 First add the code that creates the ECR repositories for the 2 applications.
 
-```
-	const colortellerrepo = new ecr.Repository(this, 'colorteller');
+```ts
+	 const colortellerrepo = new ecr.Repository(this, 'colorteller');
     
-    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
+   const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
 
 ```
 
@@ -186,6 +186,7 @@ Note down your account id via the following command.
 
 ```
 aws sts get-caller-identity
+
 ```
 
 Go to the folder examples/apps/colorapp/src/colorteller. Execute a docker build with the respective repository uri for colorteller and push it to the repository. Please change the account id 284245693010 to your own. 
@@ -196,6 +197,7 @@ cd ~/environment/aws-app-mesh-examples/examples/apps/colorapp/src/colorteller
 docker build -t 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller .
 
 docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller:latest
+
 ```
 
 Go to the folder examples/apps/colorapp/src/gateway. Execute a docker build with the respective repository uri for colorgateway and push it to the repository. Please change the account id 284245693010 to your own.
@@ -206,6 +208,7 @@ cd ~/environment/aws-app-mesh-examples/examples/apps/colorapp/src/gateway
 docker build -t 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway .
 
 docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:latest
+
 ```
 
 
@@ -214,7 +217,7 @@ docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:lates
 
 First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications.
 
-```
+```ts
 	const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
       logGroupName: "/ecs/colorteller",
       removalPolicy: cdk.RemovalPolicy.DESTROY
