@@ -55,7 +55,7 @@ Open lib/ecs-workshop-stack.ts and clean it up. Eventually it should look like t
 ```ts
 import cdk = require('@aws-cdk/core');
 
-export class CdkWorkshopStack extends cdk.Stack {
+export class CdkEcsworkshopStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -218,6 +218,19 @@ docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:lates
 First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications.
 
 ```ts
+
+    const colortellerTaskDefinition = new ecs.FargateTaskDefinition(this, 'colortellerTaskDef', {
+      memoryLimitMiB: 512,
+      cpu: 256,
+      taskRole: taskrole
+    });
+    
+    const colorgatewayTaskDefinition = new ecs.FargateTaskDefinition(this, 'colorgatewayTaskDef', {
+      memoryLimitMiB: 512,
+      cpu: 256,
+      taskRole: taskrole
+    });
+    
     const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
       logGroupName: "/ecs/colorteller",
       removalPolicy: cdk.RemovalPolicy.DESTROY
