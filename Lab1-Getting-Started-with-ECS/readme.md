@@ -219,6 +219,10 @@ First add the code that creates the ECS Task Definitions and CloudWatch Log Grou
 
 ```ts
 
+    const colortellerrepo = new ecr.Repository(this, 'colorteller');
+    
+    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
+
     const colortellerTaskDefinition = new ecs.FargateTaskDefinition(this, 'colortellerTaskDef', {
       memoryLimitMiB: 512,
       cpu: 256,
@@ -230,7 +234,7 @@ First add the code that creates the ECS Task Definitions and CloudWatch Log Grou
       cpu: 256,
       taskRole: taskrole
     });
-    
+
     const colortellerLogGroup = new logs.LogGroup(this, "colortellerLogGroup", {
       logGroupName: "/ecs/colorteller",
       removalPolicy: cdk.RemovalPolicy.DESTROY
