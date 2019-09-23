@@ -55,7 +55,7 @@ Open lib/ecs-workshop-stack.ts and clean it up. Eventually it should look like t
 ```ts
 import cdk = require('@aws-cdk/core');
 
-export class CdkEcsworkshopStack extends cdk.Stack {
+export class EcsWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -87,7 +87,7 @@ import ecr = require('@aws-cdk/aws-ecr');
 import iam = require('@aws-cdk/aws-iam');
 import logs = require('@aws-cdk/aws-logs');
 
-export class CdkEcsworkshopStack extends cdk.Stack {
+export class EcsWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -156,9 +156,9 @@ cdk deploy
 First add the code that creates the ECR repositories for the 2 applications.
 
 ```ts
-    const colortellerrepo = new ecr.Repository(this, 'colorteller');
+    const colortellerrepo = new ecr.Repository(this, 'colorteller', {repositoryName:'colorteller'});
     
-    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway');
+    const colorgatewayrepo = new ecr.Repository(this, 'colorgateway', {repositoryName:'colorgateway'});
 
 ```
 
@@ -172,6 +172,8 @@ cdk deploy
 In the terminal of Cloud9, clone the code
 
 ```
+cd ~/environment
+
 git clone https://github.com/tohwsw/aws-app-mesh-examples.git
 
 ```
@@ -281,6 +283,8 @@ First add the code that creates the ECS Task Definitions and CloudWatch Log Grou
 Let’s deploy:
 
 ```
+cd ~/environment/ecs-workshop/
+
 cdk deploy
 
 ```
