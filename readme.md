@@ -42,3 +42,5 @@ The lab architecture on AWS is shown below:
 **Note**: 
 You'll need to have a working AWS account to use this lab.
 
+Start on [Lab1](https://github.com/tohwsw/aws-ecs-workshop/tree/master/Lab1-Getting-Started-with-ECS)
+

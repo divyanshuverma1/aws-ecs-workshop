@@ -191,25 +191,25 @@ aws sts get-caller-identity
 
 ```
 
-Go to the folder examples/apps/colorapp/src/colorteller. Execute a docker build with the respective repository uri for colorteller and push it to the repository. Please change the account id 284245693010 to your own. 
+Go to the folder examples/apps/colorapp/src/colorteller. Execute a docker build with the respective repository uri for colorteller and push it to the repository. Please change the account id XXXXXXXXXXX to your own. 
 
 ```
 cd ~/environment/aws-app-mesh-examples/examples/apps/colorapp/src/colorteller
 
-docker build -t 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller .
+docker build -t XXXXXXXXXXX.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller .
 
-docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller:latest
+docker push XXXXXXXXXXX.dkr.ecr.ap-southeast-1.amazonaws.com/colorteller:latest
 
 ```
 
-Go to the folder examples/apps/colorapp/src/gateway. Execute a docker build with the respective repository uri for colorgateway and push it to the repository. Please change the account id 284245693010 to your own.
+Go to the folder examples/apps/colorapp/src/gateway. Execute a docker build with the respective repository uri for colorgateway and push it to the repository. Please change the account id XXXXXXXXXXX to your own.
 
 ```
 cd ~/environment/aws-app-mesh-examples/examples/apps/colorapp/src/gateway
 
-docker build -t 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway .
+docker build -t XXXXXXXXXXX.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway .
 
-docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:latest
+docker push XXXXXXXXXXX.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:latest
 
 ```
 
@@ -217,7 +217,7 @@ docker push 284245693010.dkr.ecr.ap-southeast-1.amazonaws.com/colorgateway:lates
 
 ## 5. Create the Task Definitions
 
-First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications.
+First add the code that creates the ECS Task Definitions and CloudWatch Log Groups for the 2 applications to ecs-workshop-stack.ts
 
 ```ts
 
@@ -292,4 +292,6 @@ cdk deploy
 ## 6. That's a wrap!
 
 You have now created the ECS cluster and the task definitions. You can proceed to lab 2 where the tasks will be run as ECS services.
+
+Continue with [Lab2](https://github.com/tohwsw/aws-ecs-workshop/tree/master/Lab2-Create-Service-with-FarGate)
 
